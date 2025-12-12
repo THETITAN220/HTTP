@@ -1,4 +1,2 @@
-Hello! My name is Raunak Rose. It is really nice to meet you.
-Need to be able to add another line.
-
-Will a space between the lines work. It probably should right?
+Hello, This is Raunak Rose trying to read from this file.
+I hope this is going to be a good demo
