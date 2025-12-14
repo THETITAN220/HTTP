@@ -1,0 +1,8 @@
+Read : POST /coffee HTTP/1.1
+Read : Host: localhost:3000
+Read : User-Agent: curl/8.16.0
+Read : Accept: */*
+Read : Content-Type: application/json
+Read : Content-Length: 21
+Read : 
+Read : {"flavor: chocolate"}
