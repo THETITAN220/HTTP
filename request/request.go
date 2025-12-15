@@ -1,6 +1,7 @@
 package request
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -51,5 +52,19 @@ func parseRequestLine(b string) (*RequestLine, string, error) {
 }
 
 func RequestFromReader(reader io.Reader) (*Request, error) {
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, errors.Join(
+			fmt.Errorf("Unable to read io.RealAll()\n"),
+			err,
+		)
+	}
 
+	str := string(data)
+
+	reqLine, str, err := parseRequestLine(str)
+
+	return &Request{
+		RequestLine: *reqLine,
+	}, nil
 }
