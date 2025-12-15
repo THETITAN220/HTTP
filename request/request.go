@@ -24,7 +24,7 @@ var SEPARATOR = "\r\n"
 
 func parseRequestLine(b string) (*RequestLine, string, error) {
 	index := strings.Index(b, SEPARATOR)
-	if index != -1 {
+	if index == -1 {
 		return nil, b, nil
 	}
 
@@ -62,7 +62,10 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 
 	str := string(data)
 
-	reqLine, str, err := parseRequestLine(str)
+	reqLine, _, err := parseRequestLine(str)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Request{
 		RequestLine: *reqLine,
