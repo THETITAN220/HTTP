@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/THETITAN220/HTTP/request"
+	"github.com/THETITAN220/HTTP/internal/request"
 )
 
 func main() {
@@ -28,5 +28,9 @@ func main() {
 		fmt.Printf("- Method: %s\n", r.RequestLine.Method)
 		fmt.Printf("- Target: %s\n", r.RequestLine.RequestTarget)
 		fmt.Printf("- Version: %s\n", r.RequestLine.HttpVersion)
+		fmt.Printf("Headers:\n")
+		r.Headers.ForEach(func(n, v string) {
+			fmt.Printf("- %s: %s\n", n, v)
+		})
 	}
 }

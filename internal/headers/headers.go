@@ -3,15 +3,29 @@ package headers
 import (
 	"bytes"
 	"fmt"
+	"strings"
 )
 
-type Headers map[string]string
+func isValidToken(token []byte) bool {
+	for _, ch := range token {
+		found := false
+		if ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9' {
+			found = true
+		}
+		switch ch {
+		case '!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~':
+			found = true
+		}
+
+		if !found {
+			return false
+		}
+	}
+
+	return true
+}
 
 var CRLF = []byte("\r\n")
-
-func NewHeaders() Headers {
-	return map[string]string{}
-}
 
 func parseHeader(fieldLine []byte) (string, string, error) {
 	parts := bytes.SplitN(fieldLine, []byte(":"), 2)
@@ -30,7 +44,36 @@ func parseHeader(fieldLine []byte) (string, string, error) {
 
 }
 
-func (h Headers) Parse(data []byte) (int, bool, error) {
+type Headers struct {
+	headers map[string]string
+}
+
+func NewHeaders() *Headers {
+	return &Headers{
+		headers: map[string]string{},
+	}
+}
+
+func (h *Headers) Get(name string) string {
+	return h.headers[strings.ToLower(name)]
+}
+
+func (h *Headers) Set(name, value string) {
+	name = strings.ToLower(name)
+	if v, ok := h.headers[name]; ok {
+		h.headers[name] = fmt.Sprintf("%s,%s", v, value)
+	} else {
+		h.headers[name] = value
+	}
+}
+
+func (h *Headers) ForEach(cb func(n, v string)) {
+	for n, v := range h.headers {
+		cb(n, v)
+	}
+}
+
+func (h *Headers) Parse(data []byte) (int, bool, error) {
 	read := 0
 	done := false
 	for {
@@ -41,6 +84,7 @@ func (h Headers) Parse(data []byte) (int, bool, error) {
 
 		// EMPTY HEADER
 		if idx == 0 {
+			read += len(CRLF)
 			done = true
 			break
 		}
@@ -49,8 +93,13 @@ func (h Headers) Parse(data []byte) (int, bool, error) {
 		if err != nil {
 			return 0, false, err
 		}
+
+		if !isValidToken([]byte(name)) {
+			return 0, false, fmt.Errorf("Malformed header name")
+		}
+
 		read += idx + len(CRLF)
-		h[name] = value
+		h.Set(name, value)
 
 	}
 
