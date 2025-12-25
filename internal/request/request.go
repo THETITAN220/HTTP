@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strconv"
 
 	"github.com/THETITAN220/HTTP/internal/headers"
 )
@@ -14,6 +15,7 @@ const (
 	StateInit    parserState = "init"
 	StateDone    parserState = "done"
 	StateHeaders parserState = "headers"
+	StateBody    parserState = "body"
 	StateError   parserState = "error"
 )
 
@@ -27,12 +29,26 @@ type Request struct {
 	RequestLine RequestLine
 	Headers     *headers.Headers
 	state       parserState
+	Body        string
+}
+
+func getInt(headers *headers.Headers, name string, defaultValue int) int {
+	valueStr, exists := headers.Get(name)
+	if !exists {
+		return defaultValue
+	}
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		return defaultValue
+	}
+	return value
 }
 
 func newRequest() *Request {
 	return &Request{
 		state:   StateInit,
 		Headers: headers.NewHeaders(),
+		Body:    "",
 	}
 }
 
@@ -70,11 +86,19 @@ func parseRequestLine(b []byte) (*RequestLine, int, error) {
 
 }
 
+func (r *Request) hasBody() bool {
+	length := getInt(r.Headers, "content-length", 0)
+	return length > 0
+}
+
 func (r *Request) parse(data []byte) (int, error) {
 	read := 0
 outer:
 	for {
 		currentData := data[read:]
+		if len(currentData) == 0 {
+			break outer
+		}
 		switch r.state {
 		case StateError:
 			return 0, ERROR_REQUEST_IN_ERROR_STATE
@@ -95,6 +119,7 @@ outer:
 		case StateHeaders:
 			n, done, err := r.Headers.Parse(currentData)
 			if err != nil {
+				r.state = StateError
 				return 0, err
 			}
 			if n == 0 {
@@ -102,8 +127,27 @@ outer:
 			}
 			read += n
 			if done {
+				if r.hasBody() {
+					r.state = StateBody
+				} else {
+					r.state = StateDone
+				}
+			}
+
+		case StateBody:
+			lengthStr := getInt(r.Headers, "content-length", 0)
+			if lengthStr == 0 {
+				panic("CHUNKED NOT IMPLEMENTED")
+			}
+
+			remaining := min(lengthStr-len(r.Body), len(currentData))
+			r.Body += string(currentData[:remaining])
+
+			if len(r.Body) == lengthStr {
 				r.state = StateDone
 			}
+
+			read += remaining
 
 		case StateDone:
 			break outer

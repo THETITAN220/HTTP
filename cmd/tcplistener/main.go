@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	listener, err := net.Listen("tcp", ":3000")
+	listener, err := net.Listen("tcp", ":42069")
 	if err != nil {
 		log.Fatal("Error : ", err)
 	}
@@ -32,5 +32,7 @@ func main() {
 		r.Headers.ForEach(func(n, v string) {
 			fmt.Printf("- %s: %s\n", n, v)
 		})
+		fmt.Printf("%s\n", r.Body)
+
 	}
 }

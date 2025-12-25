@@ -13,8 +13,10 @@ func TestHeadersParse(t *testing.T) {
 	n, done, err := headers.Parse(data)
 	require.NoError(t, err)
 	require.NotNil(t, headers)
-	assert.Equal(t, "localhost:42069", headers.Get("HOST"))
+	host, ok := headers.Get("HOST")
+	assert.Equal(t, "localhost:42069", host)
 	assert.Equal(t, 25, n)
+	assert.True(t, ok)
 	assert.True(t, done)
 
 	// Test: Invalid spacing header
@@ -38,7 +40,9 @@ func TestHeadersParse(t *testing.T) {
 	n, done, err = headers.Parse(data)
 	require.NoError(t, err)
 	require.NotNil(t, headers)
-	assert.Equal(t, "localhost:42069,localhost:42079", headers.Get("HOST"))
+	host, ok = headers.Get("HOST")
+	assert.Equal(t, "localhost:42069,localhost:42079", host)
+	assert.True(t, ok)
 	assert.False(t, done)
 
 }
