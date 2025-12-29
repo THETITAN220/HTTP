@@ -28,7 +28,7 @@ go.work.sum
 .env
 
 # Temporary files
-./tmp
+tmp
 
 # Editor/IDE
 # .idea/
