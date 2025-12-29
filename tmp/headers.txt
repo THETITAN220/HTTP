@@ -1,8 +1,0 @@
-Request line:
-- Method: GET
-- Target: /raunak/yo
-- Version: 1.1
-Headers:
-- user-agent: curl/8.16.0
-- accept: */*
-- host: localhost:3000
